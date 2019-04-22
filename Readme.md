@@ -1,3 +1,8 @@
+# How to create a custom streamsets processor for content extraction
+
+We will use Apache Tika for content extraction.
+
+
 # Prepare streamsets
 
 ## Requirements
