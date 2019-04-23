@@ -3,21 +3,9 @@
 We will use Apache Tika for content extraction.
 
 
-# Prepare streamsets
+# Project Requirements
 
-## Requirements
-
-You must have docker daemon installed
-
-## Start the Streamsets docker image
-  
-    docker run --restart on-failure -p 18630:18630 -d --name streamsets-dc streamsets/datacollector dc
-
-## Check Streamsets image
-
-http://localhost:18630/
-
-admin/admin
+You must have docker daemon and Java JDK 8
 
 
 # Generate the custom processor
@@ -191,29 +179,40 @@ ro.trc.streamsets.stage.processor.sample/SampleProcessor.java
 
     mvn clean package -DskipTests
 
+
 # Install the processor
 
-## Start docker image
+    This installation process is not the....
+
+## Start streamsets docker image
 
     docker run --restart on-failure -p 18630:18630 -d --name streamsets-dc streamsets/datacollector dc
 
-## Find image locations
+## Check Streamsets image
+
+http://localhost:18630/
+
+admin/admin
+
+## Create an empty pipeline
+
+Custom content extraction demo
+
+## Find streamsets userLibrariesDir location
 
 
     docker ps
-    docker exec -it d335b61b2bf4   /bin/bash
+    docker exec -it 3192ab14b411   /bin/bash
     
     ps -ef | grep userLibrariesDir 
         - /opt/streamsets-datacollector-user-libs
     
     exit
     
-## Copy the package in docker container
-
-    docker ps
+## Copy the package in docker container    
     
-    docker cp "C:\Users\razva\Documents\Projects\WORKSHOPS\BIG DATA\INGESTION - STREAMSETS\6. STREAMSETS - CUSTOM PLUGIN\streamsets-content-extraction\content-extractor\target\content-extractor-1.0.0.tar.gz" d335b61b2bf4:/
-    docker exec -it d335b61b2bf4  /bin/bash
+    docker cp "C:\Users\razva\Documents\Projects\WORKSHOPS\BIG DATA\INGESTION - STREAMSETS\6. STREAMSETS - CUSTOM PLUGIN\streamsets-content-extraction\content-extractor\target\content-extractor-1.0.0.tar.gz" 3192ab14b411:/
+    docker exec -it 3192ab14b411  /bin/bash
     
     cd /opt/streamsets-datacollector-user-libs
     sudo tar xvfz /content-extractor-1.0.0.tar.gz
@@ -221,21 +220,37 @@ ro.trc.streamsets.stage.processor.sample/SampleProcessor.java
     exit
 
 ## Restart container
-
-    docker ps
-    docker container restart d335b61b2bf4
     
-# Create a pipeline
+    docker container restart 3192ab14b411
 
-Custom content extraction demo
+## Check processor installation
 
-# Run the pipeline
+http://localhost:18630/
 
-    docker cp C:\streamsets\libs\content-extractor c36d212f9f09:/
-    docker exec -it c36d212f9f09 /bin/bash
-    sudo cp -R content-extractor /opt/streamsets-datacollector-3.7.2/user-libs/
-    exit
+admin/admin   
 
+# Use the processor
+
+## Create a ftp server
+
+docker run -d -e FTP_USER_NAME=bob -e FTP_USER_PASS=12345 -e FTP_USER_HOME=/home/bob -e "PUBLICHOST=10.30.20.15" -p 21:21 -p 30000-30009:30000-30009 stilliard/pure-ftpd
+
+## Update the pipeline
+
+Update pipeline:
+
+Ftp Origin
+    - Resource URL: ftp://10.30.20.15/
+    - Path Relative to User Home Directory: true
+    - Process Subdirectories: true
+    - Credentials: bob / 12345
+    - Data format: Whole file       
+Local FS
+    - Output files - File type: Text files
+
+# Test the pipeline
+Test pipeline:
+    
 
 References
 https://streamsets.com/
@@ -244,5 +259,6 @@ https://github.com/streamsets/tutorials/blob/master/tutorial-processor/readme.md
 https://mvnrepository.com/artifact/com.streamsets/streamsets-datacollector-stage-lib-tutorial
 https://tika.apache.org/
 https://www.baeldung.com/apache-tika
+https://hub.docker.com/r/stilliard/pure-ftpd
 
 
